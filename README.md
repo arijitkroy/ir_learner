@@ -47,7 +47,7 @@ The project uses the existing three-pin IR Emission module. It is driven by the 
 * **VCC / Power** -> **5V**
 * **GND** -> **GND**
 
-Point the IR LED towards the appliance's IR window. The appliance responding at up to 2.5 metres confirms the installed emitter module and wiring are operating correctly.
+Point the IR LED towards the appliance's IR window. The appliance responding at up to 2 metres confirms the installed emitter module and wiring are operating correctly.
 
 ```mermaid
 flowchart LR
