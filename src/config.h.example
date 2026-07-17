@@ -1,0 +1,15 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// ==========================================
+// Default Wi-Fi Configuration Settings
+// ==========================================
+// If SSID is specified here, the board will bypass the AP portal
+// and connect to this network on the first boot or after a reset.
+#define DEFAULT_WIFI_SSID "SSID_HERE"
+#define DEFAULT_WIFI_PASS "PASSWORD_HERE"
+
+// Default mDNS host address (resolves to http://irremote.local)
+#define DEFAULT_MDNS_NAME "irremote"
+
+#endif // CONFIG_H

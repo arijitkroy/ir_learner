@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR Learner Web Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo"></div>
+                <h2>IR Remote Hub</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#library" class="nav-item" data-tab="library">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>IR Library</span>
+                </a>
+                <a href="#learn" class="nav-item" data-tab="learn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3" fill="currentColor"></circle></svg>
+                    <span>IR Learn</span>
+                </a>
+                <a href="#logs" class="nav-item" data-tab="logs">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 17 10 11 14 15 20 9"></polyline><polyline points="14 9 20 9 20 15"></polyline></svg>
+                    <span>System Logs</span>
+                </a>
+                <a href="#settings" class="nav-item" data-tab="settings">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="system-status">
+                <div class="status-indicator">
+                    <span class="pulse"></span>
+                    <span id="connection-state">Connecting...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>IR Remote Hub</h1>
+                <div class="device-badge">
+                    <span class="badge">Arduino Uno R4</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="tab-dashboard" class="tab-panel">
+                <h2 class="section-title">Dashboard</h2>
+                <div class="dashboard-grid">
+                    <!-- Status Cards -->
+                    <div class="card status-card">
+                        <h3>Device Status</h3>
+                        <div class="stat-row">
+                            <span>Uptime:</span>
+                            <span id="uptime-val" class="value">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Free RAM:</span>
+                            <span id="ram-val" class="value">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Flash Usage:</span>
+                            <span id="flash-val" class="value">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>IR Interrupts:</span>
+                            <span id="interrupts-val" class="value">0</span>
+                        </div>
+                    </div>
+                    <div class="card status-card">
+                        <h3>Network</h3>
+                        <div class="stat-row">
+                            <span>SSID:</span>
+                            <span id="ssid-val" class="value">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>IP Address:</span>
+                            <span id="ip-val" class="value">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Signal Strength:</span>
+                            <span id="rssi-val" class="value">-</span>
+                        </div>
+                    </div>
+                    <!-- Direct Send Card -->
+                    <div class="card send-card">
+                        <h3>Quick Transmit</h3>
+                        <form id="quick-send-form">
+                            <div class="form-group">
+                                <label for="tx-protocol">Protocol</label>
+                                <select id="tx-protocol" class="form-control">
+                                    <option value="1">NEC</option>
+                                    <option value="3">Samsung</option>
+                                    <option value="2">Sony</option>
+                                    <option value="4">RC5</option>
+                                    <option value="5">RC6</option>
+                                    <option value="6">Panasonic</option>
+                                    <option value="7">LG</option>
+                                    <option value="8">JVC</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tx-address">Address</label>
+                                    <input type="number" id="tx-address" class="form-control" placeholder="0" min="0" max="65535">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tx-command">Command</label>
+                                    <input type="number" id="tx-command" class="form-control" placeholder="0" min="0" max="4294967295">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tx-bits">Bits</label>
+                                    <input type="number" id="tx-bits" class="form-control" placeholder="32" min="1" max="64">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tx-freq">Freq (Hz)</label>
+                                    <input type="number" id="tx-freq" class="form-control" placeholder="38000">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Transmit Signal</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Library Section -->
+            <section id="tab-library" class="tab-panel">
+                <h2 class="section-title">IR Library</h2>
+                <div class="library-controls">
+                    <div class="search-box">
+                        <input type="text" id="lib-search" placeholder="Search commands...">
+                    </div>
+                    <div class="sort-box">
+                        <select id="lib-sort">
+                            <option value="name-asc">Name (A-Z)</option>
+                            <option value="name-desc">Name (Z-A)</option>
+                            <option value="protocol">Protocol</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="library-grid" class="library-grid">
+                    <!-- Dynamic code cards will be loaded here -->
+                </div>
+                <div id="library-empty" class="empty-state hidden">
+                    <p>No saved commands found. Head over to the "IR Learn" tab to capture your first code!</p>
+                </div>
+            </section>
+
+            <!-- Learn Section -->
+            <section id="tab-learn" class="tab-panel">
+                <h2 class="section-title">IR Learn</h2>
+                <div class="card learn-wizard-card">
+                    <div class="wizard-header">
+                        <h2>IR Learning Wizard</h2>
+                        <p>Capture IR commands and save them to the device library.</p>
+                    </div>
+                    <div class="wizard-body">
+                        <!-- Step 1: Start -->
+                        <div id="learn-step-idle" class="wizard-step active">
+                            <div class="wizard-graphics wizard-graphic-idle"></div>
+                            <button id="btn-start-learn" class="btn btn-primary btn-large">Start Capture Wizard</button>
+                        </div>
+                        <!-- Step 2: Capture -->
+                        <div id="learn-step-listening" class="wizard-step">
+                            <div class="wizard-graphics wizard-graphic-listening">
+                                <div class="radar-pulse"></div>
+                            </div>
+                            <p class="status-msg">Listening... Point your remote at the receiver and press a key.</p>
+                            <div class="pulse-counter">Pulses Captured: <span id="pulse-count">0</span></div>
+                            <button id="btn-cancel-learn" class="btn btn-secondary">Cancel</button>
+                        </div>
+                        <!-- Step 3: Result -->
+                        <div id="learn-step-result" class="wizard-step">
+                            <div class="wizard-graphics wizard-graphic-success"></div>
+                            <h3>Signal Captured!</h3>
+                            <div class="decoded-details">
+                                <div class="detail-row"><span>Protocol:</span><strong id="res-proto">-</strong></div>
+                                <div class="detail-row"><span>Address:</span><strong id="res-addr">-</strong></div>
+                                <div class="detail-row"><span>Command:</span><strong id="res-cmd">-</strong></div>
+                                <div class="detail-row"><span>Bits:</span><strong id="res-bits">-</strong></div>
+                                <div class="detail-row"><span>Signal Quality:</span><strong id="res-quality">-</strong></div>
+                            </div>
+                            <form id="save-code-form" class="save-form">
+                                <div class="form-group">
+                                    <label for="save-name">Name</label>
+                                    <input type="text" id="save-name" class="form-control" placeholder="e.g. TV Power" required maxlength="20">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" id="btn-discard-learn" class="btn btn-secondary">Discard</button>
+                                    <button type="submit" class="btn btn-primary">Save to Library</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="tab-logs" class="tab-panel">
+                <h2 class="section-title">System Logs</h2>
+                <div class="card logs-card">
+                    <div class="terminal-header">
+                        <h3>Device Serial Logs</h3>
+                        <button id="btn-clear-logs" class="btn btn-sm btn-secondary">Clear Terminal</button>
+                    </div>
+                    <div id="log-terminal" class="terminal-body">
+                        <!-- WebSocket logs output -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="tab-settings" class="tab-panel">
+                <h2 class="section-title">Settings</h2>
+                <div class="settings-grid">
+                    <!-- WiFi Config -->
+                    <div class="card">
+                        <h3>WiFi Station settings</h3>
+                        <form id="wifi-config-form">
+                            <div class="form-group">
+                                <label for="wifi-ssid">Network SSID</label>
+                                <input type="text" id="wifi-ssid" class="form-control" placeholder="Enter network name" required maxlength="32">
+                            </div>
+                            <div class="form-group">
+                                <label for="wifi-pass">Password</label>
+                                <input type="password" id="wifi-pass" class="form-control" placeholder="Enter network password" maxlength="64">
+                            </div>
+                            <div class="form-group">
+                                <label for="wifi-mdns">mDNS Name</label>
+                                <input type="text" id="wifi-mdns" class="form-control" placeholder="irremote" required maxlength="20">
+                                <small>Device will be reachable at http://&lt;name&gt;.local</small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="wifi-use-static"> Enable Static IP
+                                </label>
+                            </div>
+                            <div id="static-ip-fields" class="hidden">
+                                <div class="form-group">
+                                    <label for="wifi-ip">Static IP Address</label>
+                                    <input type="text" id="wifi-ip" class="form-control" placeholder="192.168.1.200">
+                                </div>
+                                <div class="form-group">
+                                    <label for="wifi-gateway">Gateway Address</label>
+                                    <input type="text" id="wifi-gateway" class="form-control" placeholder="192.168.1.1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="wifi-subnet">Subnet Mask</label>
+                                    <input type="text" id="wifi-subnet" class="form-control" placeholder="255.255.255.0">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save & Apply Settings</button>
+                        </form>
+                    </div>
+
+                    <!-- System & Database -->
+                    <div class="card">
+                        <h3>System Utilities</h3>
+                        <div class="system-actions">
+                            <button id="btn-reboot" class="btn btn-secondary btn-block">Reboot Controller</button>
+                            <button id="btn-factory" class="btn btn-danger btn-block">Factory Reset Device</button>
+                        </div>
+                        <h3 class="margin-top">Database Backup</h3>
+                        <div class="system-actions">
+                            <button id="btn-export" class="btn btn-secondary btn-block">Export Database (JSON)</button>
+                            <div class="file-upload-wrapper">
+                                <button class="btn btn-secondary btn-block">Import Database (JSON)</button>
+                                <input type="file" id="btn-import-file" accept=".json">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Confirmation Modal Dialog -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-msg">Are you sure you want to perform this operation?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="modal-confirm" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
