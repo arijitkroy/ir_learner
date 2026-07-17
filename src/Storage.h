@@ -34,7 +34,7 @@ struct IRCodeHeader {
 
 // WiFi Credentials & System Config
 struct SystemConfig {
-    uint8_t wifiConfigured; // 0 = not configured, 1 = configured
+    uint8_t wifiConfigured; // Persisted: 0 = start setup AP, 1 = join saved network
     char ssid[33];          // Max 32 chars + null terminator
     char password[65];      // Max 64 chars + null terminator
     char mdnsName[21];      // Max 20 chars, default "irremote"

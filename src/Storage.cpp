@@ -470,19 +470,20 @@ void Storage::factoryReset() {
     EEPROM.write(2, 0x4C); // 'L'
     EEPROM.write(3, 0x31); // '1'
 
-    // Write defaults from config.h if SSID is set
+    // Seed persisted WiFi settings from config.h only on first initialization
+    // or factory reset. Later web Settings changes remain in EEPROM.
     SystemConfig defaultConfig;
     memset(&defaultConfig, 0, sizeof(SystemConfig));
     
     if (strlen(DEFAULT_WIFI_SSID) > 0 && strcmp(DEFAULT_WIFI_SSID, "Your_WiFi_SSID") != 0) {
         defaultConfig.wifiConfigured = 1;
-        strncpy(defaultConfig.ssid, DEFAULT_WIFI_SSID, 32);
-        strncpy(defaultConfig.password, DEFAULT_WIFI_PASS, 64);
+        strncpy(defaultConfig.ssid, DEFAULT_WIFI_SSID, sizeof(defaultConfig.ssid) - 1);
+        strncpy(defaultConfig.password, DEFAULT_WIFI_PASS, sizeof(defaultConfig.password) - 1);
     } else {
         defaultConfig.wifiConfigured = 0;
     }
     
-    strncpy(defaultConfig.mdnsName, DEFAULT_MDNS_NAME, 20);
+    strncpy(defaultConfig.mdnsName, DEFAULT_MDNS_NAME, sizeof(defaultConfig.mdnsName) - 1);
 
     EEPROM.put(CONFIG_ADDR, defaultConfig);
     _config = defaultConfig;

@@ -6,27 +6,22 @@ An all-in-one, production-grade infrared learning, database, and transmitting pl
 
 ## Architecture Overview
 
-```
-                      +-----------------------------+
-                      |       Web Browser UI        |
-                      +--------------+--------------+
-                                     |
-                             HTTP / WebSockets
-                                     |
-                      +--------------v--------------+
-                      |       ESP32-S3 WiFi         |  (Coprocessor running
-                      +--------------+--------------+   network bridge)
-                                     |  SPI
-                      +--------------v--------------+
-                      |        Renesas RA4M1        |  (Main MCU)
-                      +--+--------+--------+-----+--+
-                         |        |        |     |
-                   GPT (D3)   IRQ1 (D2)  EEPROM  USB
-                         |        |        |     |
-                      +--v--+  +--v--+   +--v-+  v
-                      | LED |  | OUT |   | 8K | Serial
-                      +-----+  +-----+   +----+
-                       (TX)     (RX)
+```mermaid
+flowchart TB
+    Browser[Web Browser UI]
+    WiFi[ESP32-S3 WiFi coprocessor<br/>Network bridge]
+    MCU[Renesas RA4M1<br/>Main MCU]
+    TX[IR Emission module<br/>D3 / GPT PWM]
+    RX[IR Receiver<br/>D2 / IRQ1]
+    Storage[8 KB Data Flash<br/>Codes and settings]
+    Serial[USB Serial]
+
+    Browser <-->|HTTP / WebSockets| WiFi
+    WiFi <-->|SPI| MCU
+    MCU -->|38 kHz carrier| TX
+    RX -->|IR pulse edges| MCU
+    MCU <--> Storage
+    MCU <--> Serial
 ```
 
 ### Key Modular Components
@@ -45,36 +40,28 @@ An all-in-one, production-grade infrared learning, database, and transmitting pl
 * **VCC** -> **5V**
 * **GND** -> **GND**
 
-### Emitter (940 nm IR LED with transistor driver)
-Use a transistor driver for the IR LED. Driving an IR LED directly from D3 limits it to approximately 20–30 mA, which may be detected by a nearby IR receiver but is often too weak for an appliance. A physical remote normally uses a higher **pulsed** LED current.
+### Emitter (IR Emission module)
+The project uses the existing three-pin IR Emission module. It is driven by the Arduino Uno R4 WiFi hardware PWM output at approximately 38 kHz.
 
-Required parts:
+* **S / Signal** -> **D3**
+* **VCC / Power** -> **5V**
+* **GND** -> **GND**
 
-* 1 × 940 nm IR LED
-* 1 × NPN transistor: **2N2222**, PN2222, S8050, or BC337
-* 1 × 1 kΩ resistor (base resistor)
-* 1 × 10 kΩ resistor (base pull-down)
-* 1 × 39–47 Ω, ½ W resistor (IR LED current limiting)
+Point the IR LED towards the appliance's IR window. The appliance responding at up to 2.5 metres confirms the installed emitter module and wiring are operating correctly.
 
+```mermaid
+flowchart LR
+    UNO[Arduino Uno R4 WiFi]
+    RX[IR Receiver<br/>HX1838]
+    TX[IR Emission Module]
+
+    UNO -->|D2 / IRQ1| RX
+    UNO -->|D3 / 38 kHz PWM| TX
+    UNO -->|5V| RX
+    UNO -->|5V| TX
+    UNO -->|GND| RX
+    UNO -->|GND| TX
 ```
-Arduino D3 ----[ 1 kΩ ]---- Base  NPN transistor
-                              |
-                           [ 10 kΩ ]
-                              |
-Arduino GND ------------------+---- Emitter
-
-Arduino 5V ----[ 39–47 Ω ]---->|---- Collector
-                             IR LED
-```
-
-The D3 PWM output is unchanged: it switches the transistor at the required carrier frequency. The transistor supplies approximately 75–100 mA peak LED current while D3 supplies only a few milliamps to the transistor base.
-
-**Important:** Connect the Arduino GND to the transistor emitter and LED-supply ground. Do not connect the IR LED/module signal pin directly to D3 at the same time as this driver. Do not use a relay; it cannot switch at the 38 kHz carrier frequency.
-
-<!-- Legacy direct-drive guidance retained in source history only.
-*Note: A 100Ω resistor limits the current from the 5V/3.3V logic line to a safe level (~20-30mA) while still enabling an effective transmission range of 1.5 to 2 meters.*
-
--->
 
 ---
 
@@ -95,13 +82,13 @@ The D3 PWM output is unchanged: it switches the transistor at the required carri
 
 ## First-Time WiFi Setup (Configuration AP)
 
-1. When the device boots for the first time (or after a factory reset), it will detect that no WiFi credentials exist.
-2. It automatically fires up a local Wi-Fi Access Point named **`IR_Learner_XXXX`** (where `XXXX` are the last 4 characters of its MAC address).
-3. Connect your computer or phone to this network (no password required).
-4. Open your browser and navigate to **`http://192.168.4.1`**.
-5. Go to the **Settings** tab. Input your router's SSID and Password, configure an optional mDNS hostname (e.g. `irremote`), and press **Save & Apply**.
-6. The controller will save the settings to the Data Flash, shut down the AP, and reboot.
-7. Once connected to your network, you can access the interface on your local router network via **`http://irremote.local`** (or the IP address assigned by DHCP, which will print to the Arduino IDE Serial Monitor at 115200 baud).
+1. On first boot or after a factory reset, the device copies the defaults in `src/config.h` to persistent EEPROM/Data Flash.
+2. If `DEFAULT_WIFI_SSID` is set, the device attempts to join that network. Saved Settings-page values remain in persistent storage and are used on subsequent boots.
+3. If the SSID is empty, missing, or cannot connect within 15 seconds, it starts a local Wi-Fi Access Point named **`IR_Learner_XXXX`** (where `XXXX` are the last 4 characters of its MAC address).
+4. Connect your computer or phone to this network (no password required), then open **`http://192.168.4.1`**.
+5. Go to the **Settings** tab. Enter your router SSID and password, configure an optional mDNS hostname (for example, `irremote`), and press **Save & Apply**.
+6. The controller persists these settings to EEPROM/Data Flash, shuts down the AP, and reboots. They override `config.h` defaults until the next factory reset.
+7. Once connected to your network, access the interface at **`http://irremote.local`** or the DHCP IP address shown in the Serial Monitor at 115200 baud.
 
 ---
 
