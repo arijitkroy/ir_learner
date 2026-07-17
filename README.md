@@ -36,8 +36,8 @@ flowchart TB
 ## Hardware Assembly & Pinout
 
 ### Receiver (HX1838)
-* **OUT** -> **D2** (External Interrupt IRQ1)
-* **VCC** -> **5V**
+* **S / Signal** -> **D2** (External Interrupt IRQ1)
+* **VCC / Power** -> **5V**
 * **GND** -> **GND**
 
 ### Emitter (IR Emission module)
@@ -200,6 +200,16 @@ Verify that you are using a stable 5V power supply. Toggling the WiFi stack and 
 
 ### Port is not visible or mDNS fails to resolve
 mDNS resolution requires Bonjour support (native on Windows 10/11, macOS, and iOS). If you are on an older OS, make sure you can reach the device via its IP address printed in the Serial Monitor. Ensure that client isolation is disabled in your router settings.
+
+---
+
+## Limitations
+
+* **Fixed hardware pins:** The IR receiver uses D2 and the IR Emission module uses D3. Changing either requires a code change and compatible interrupt/PWM support.
+* **IR range and alignment:** The installed IR Emission module has been verified at up to approximately 2 metres. Range depends on LED alignment, appliance receiver sensitivity, ambient light, and supply voltage.
+* **Receiver carrier band:** The HX1838 receiver is designed for signals around 38 kHz. Remotes using substantially different carrier frequencies may have reduced learning reliability.
+* **Raw capture and storage:** A learned raw signal is limited to 400 timing entries. The 8 KB EEPROM/Data Flash is shared by Wi-Fi settings and saved codes, so the number of raw commands that fit depends on their length.
+* **Local-network access:** The web interface has no authentication. Use it only on a trusted local network; do not expose it directly to the internet.
 
 ---
 
