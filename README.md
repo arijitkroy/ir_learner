@@ -1,6 +1,6 @@
-# Arduino Uno R4 WiFi IR Learning Remote Server
+# Arduino UNO R4 WiFi IR Learning Remote
 
-An all-in-one, production-grade infrared learning, database, and transmitting platform for the **Arduino Uno R4 WiFi** (Renesas RA4M1 + ESP32-S3). Features a sleek, responsive Single Page Application (SPA) dashboard hosted directly from internal flash, featuring real-time diagnostics, WebSocket streaming logs, and raw signal analysis.
+IR Learner is an open-source firmware prototype for capturing, organizing, and replaying infrared remote commands with an **Arduino UNO R4 WiFi** (Renesas RA4M1 + ESP32-S3). It provides a browser-based dashboard, local command storage, protocol-oriented decoding, and raw timing replay. Performance has not been evaluated in a controlled study; see [Limitations](#limitations).
 
 ---
 
@@ -26,10 +26,10 @@ flowchart TB
 
 ### Key Modular Components
 * **`WiFiManager`**: Dynamically transitions between Station (STA) mode connecting to home routers and local Access Point (AP) Configuration Portal mode if setup fails or credentials are unset. Integrated mDNS responder (`irremote.local`).
-* **`IRReceiver`**: Asynchronous interrupt-driven signal edge-timing capture on pin D2 (IRQ1). Custom parses timings to identify protocols (NEC, Samsung, Sony, Panasonic, LG, JVC, RC5, RC6) or marks as RAW with a custom signal quality metric.
-* **`IRSender`**: Direct hardware modulation of the RA4M1 General PWM Timer (GPT) channel on pin D3 to emit an accurate 38 kHz carrier frequency at a ~33% duty cycle, minimizing CPU load and timing jitter.
-* **`Storage`**: Adapts to the 8KB Data Flash limit by maintaining a compact metadata index in RAM (**3.6 KB SRAM for 100 codes**) and storing variable-length records dynamically in flash, using run-length value compression on raw timings for a ~50% size reduction.
-* **`Web` / `API`**: Custom-written HTTP server and RFC 6455-compliant WebSocket server running on port 80, routing REST API commands and broadcasting diagnostics/real-time pulse streams in JSON format.
+* **`IRReceiver`**: Captures edge timings on D2 (IRQ1) into a 400-entry buffer. It attempts NEC, Samsung, Sony, Panasonic, LG, JVC, and heuristic RC5 decoding; unmatched captures are retained as raw timings. RC6 receive decoding is not implemented. The displayed quality value is a fixed heuristic, not a measured confidence score.
+* **`IRSender`**: Uses the RA4M1 PWM abstraction on D3 for a nominal 38 kHz carrier at approximately 33% duty cycle; the Sony send routine uses 40 kHz. Raw timing arrays can also be replayed.
+* **`Storage`**: Uses an 8 KB EEPROM-compatible data-flash region for settings and command records, with an in-memory index capped at 100 entries. Raw timings use a compact per-duration scaled/escape encoding; storage capacity depends on record content.
+* **`Web` / `API`**: Serves the embedded single-page application and JSON endpoints over HTTP, with WebSocket status and log events.
 
 ---
 
@@ -47,7 +47,7 @@ The project uses the existing three-pin IR Emission module. It is driven by the 
 * **VCC / Power** -> **5V**
 * **GND** -> **GND**
 
-Point the IR LED towards the appliance's IR window. The appliance responding at up to 2 metres confirms the installed emitter module and wiring are operating correctly.
+Point the IR LED towards the appliance's IR window. Practical range depends on emitter hardware, alignment, ambient light, and the appliance receiver; no controlled range measurement is provided.
 
 ```mermaid
 flowchart LR
@@ -65,24 +65,35 @@ flowchart LR
 
 ---
 
-## Compiling & Uploading
+## Installation, Configuration, Compilation & Upload
 
-### Prerequisites & Board Installation
-1. Download and install the latest **Arduino IDE** (version 2.x or later).
-2. Go to **Tools > Board > Boards Manager**, search for `Arduino UNO R4 Boards` and install the board support package. (No external libraries are required, as mDNS is fully self-contained in the sketch files).
+### Prerequisites
+1. Install **Arduino IDE 2.x** or **Arduino CLI**.
+2. Install the **Arduino UNO R4 Boards** platform (CLI core identifier: `arduino:renesas_uno`). The sketch uses the platform's Wi-Fi and PWM facilities; mDNS is implemented in the repository, so no separate mDNS library is required.
+3. From the repository root, create the local configuration header from the tracked example:
+   ```powershell
+   Copy-Item src/config.h.example src/config.h
+   ```
+   `src/config.h` is intentionally ignored by Git because it may contain Wi-Fi credentials. Leave the default SSID empty to start in access-point setup mode, or enter your own network credentials. Do not commit credentials.
 
-### Compilation Steps
-1. Open `IR_Learner.ino` in the Arduino IDE.
-2. Select your board: **Tools > Board > Arduino UNO R4 Boards > Arduino UNO R4 WiFi**.
-3. Select your port: **Tools > Port > [Select your board's COM port]**.
-4. Verify compiling by clicking the Checkmark button.
-5. Upload by clicking the Right Arrow button.
+### Compile with Arduino CLI
+From the repository root, install the board platform once and compile:
+```powershell
+arduino-cli core install arduino:renesas_uno
+arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi .
+```
+
+To upload, first list connected boards with `arduino-cli board list`, then use the reported port:
+```powershell
+arduino-cli upload -p COM_PORT --fqbn arduino:renesas_uno:unor4wifi .
+```
+Replace `COM_PORT` with the actual port (for example, `COM5`). In Arduino IDE, open `IR_Learner.ino`, select **Arduino UNO R4 WiFi** and the device port, then use **Verify** and **Upload**.
 
 ---
 
 ## First-Time WiFi Setup (Configuration AP)
 
-1. On first boot or after a factory reset, the device copies the defaults in `src/config.h` to persistent EEPROM/Data Flash.
+1. On first boot or after a factory reset, the device copies the defaults in your local `src/config.h` to persistent EEPROM/Data Flash.
 2. If `DEFAULT_WIFI_SSID` is set, the device attempts to join that network. Saved Settings-page values remain in persistent storage and are used on subsequent boots.
 3. If the SSID is empty, missing, or cannot connect within 15 seconds, it starts a local Wi-Fi Access Point named **`IR_Learner_XXXX`** (where `XXXX` are the last 4 characters of its MAC address).
 4. Connect your computer or phone to this network (no password required), then open **`http://192.168.4.1`**.
@@ -206,10 +217,14 @@ mDNS resolution requires Bonjour support (native on Windows 10/11, macOS, and iO
 ## Limitations
 
 * **Fixed hardware pins:** The IR receiver uses D2 and the IR Emission module uses D3. Changing either requires a code change and compatible interrupt/PWM support.
-* **IR range and alignment:** The installed IR Emission module has been verified at up to approximately 2 metres. Range depends on LED alignment, appliance receiver sensitivity, ambient light, and supply voltage.
+* **IR range and alignment:** Range depends on LED alignment, emitter drive, appliance receiver sensitivity, ambient light, and supply voltage; it has not been characterized under controlled conditions.
 * **Receiver carrier band:** The HX1838 receiver is designed for signals around 38 kHz. Remotes using substantially different carrier frequencies may have reduced learning reliability.
 * **Raw capture and storage:** A learned raw signal is limited to 400 timing entries. The 8 KB EEPROM/Data Flash is shared by Wi-Fi settings and saved codes, so the number of raw commands that fit depends on their length.
 * **Local-network access:** The web interface has no authentication. Use it only on a trusted local network; do not expose it directly to the internet.
+
+## License
+
+The source code is distributed under the [MIT License](LICENSE).
 
 ---
 
