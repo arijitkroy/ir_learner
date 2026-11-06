@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata in this file.
+title: "IR Learner: Arduino UNO R4 WiFi infrared learning remote"
+authors:
+  - family-names: Roy
+    given-names: Arijit Kumar
+    orcid: "https://orcid.org/0009-0002-5797-8600"
+type: software
+license: MIT
+repository-code: "https://github.com/arijitkroy/ir_learner"
+keywords:
+  - infrared remote control
+  - embedded systems
+  - Arduino
+  - signal capture
